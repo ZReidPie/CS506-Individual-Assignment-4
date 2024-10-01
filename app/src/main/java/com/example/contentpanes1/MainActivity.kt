@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.* // For layout components
-import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.* // For state management
 import androidx.compose.ui.Alignment
@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontStyle
+
+import androidx.compose.foundation.lazy.items // lazy columns
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,28 +32,34 @@ class MainActivity : ComponentActivity() {
 fun SimpleContentPanesApp() {
     val windowInfo = calculateCurrentWindowInfo()
     val items = listOf("Task 1", "Task 2", "Task 3", "Task 4") // sample tasks
+    val products = listOf(
+        Product("Product A", "$100", "Product A is the most affordable and breaks easily."),
+        Product("Product B", "$150", "Product B is slightly more expensive but breaks less easily."),
+        Product("Product C", "$10,000", "Premium product C, Stop looking at it you know can't afford it.")
+    )
+
     var selectedItem by remember { mutableStateOf<String?>(null) }
 
     if (windowInfo.isWideScreen) {
         // Two-pane layout for wide screens, one for the task list
         // the other for the task details
         Row(modifier = Modifier.fillMaxSize()) {
-            TaskList(items = items, onItemSelected = { selectedItem = it }, modifier = Modifier.weight(1f))
+            TaskList(allProds = products, onItemSelected = { selectedItem = it }, modifier = Modifier.weight(1f))
             Spacer(modifier = Modifier.width(16.dp))
-            TaskDetailPane(task = selectedItem, modifier = Modifier.weight(1f))
+            TaskDetailPane(prod = selectedItem, modifier = Modifier.weight(1f), products)
         }
     } else {
         // Single-pane layout for narrow screens
         if (selectedItem == null) {
-            TaskList(items = items, onItemSelected = { selectedItem = it }, modifier = Modifier.fillMaxSize())
+            TaskList(allProds = products, onItemSelected = { selectedItem = it }, modifier = Modifier.fillMaxSize())
         } else {
-            TaskDetailPane(task = selectedItem, modifier = Modifier.fillMaxSize())
+            TaskDetailPane(prod = selectedItem, modifier = Modifier.fillMaxSize(), products)
         }
     }
 }
 
 @Composable
-fun TaskList(items: List<String>, onItemSelected: (String) -> Unit, modifier: Modifier = Modifier) {
+fun TaskList(allProds: List<Product>, onItemSelected: (String) -> Unit, modifier: Modifier = Modifier) {
     // Tasks displayed in a column in the task list pane
     Column(
         modifier = modifier.padding(16.dp),
@@ -59,30 +67,35 @@ fun TaskList(items: List<String>, onItemSelected: (String) -> Unit, modifier: Mo
     ) {
         // List Title
         Text(
-            text = "Tasks",
+            text = "Products",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // List Items
-        items.forEach { item ->
-            Text(
-                text = item,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onItemSelected(item) }
-                    .padding(8.dp),
-                fontSize = 18.sp
-            )
-            Spacer(modifier = Modifier.height(4.dp))
+        LazyColumn(
+            modifier = modifier.padding(16.dp) // Add padding around the list
+        ) {
+            items(allProds) { product ->
+                // Display each product's name
+                Text(
+                    text = product.name,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onItemSelected(product.name) } // Corrected the clickable behavior
+                        .padding(8.dp),
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
         }
     }
 }
 
+
 @Composable
-fun TaskDetailPane(task: String?, modifier: Modifier = Modifier) {
+fun TaskDetailPane(prod: String?, modifier: Modifier = Modifier, allProds: List<Product>) {
     // Task details pane used when the user selects a particular task
     Column(
         modifier = modifier
@@ -91,29 +104,31 @@ fun TaskDetailPane(task: String?, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (task != null) {
+        // add for loop here
+        if (prod != null) {
             // Task Detail
             Text(
-                text = "Details for $task",
+                text = "Details for $prod",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 fontStyle = FontStyle.Italic
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "This is the detailed description of $task.",
+                text = "This is the detailed description of $prod.",
                 fontSize = 16.sp
             )
         } else {
             // No task selected
             Text(
-                text = "No task selected",
+                text = "Select a product to view details.",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
         }
     }
 }
+
 
 @Composable
 fun calculateCurrentWindowInfo(): WindowInfo {
@@ -130,6 +145,12 @@ fun calculateCurrentWindowInfo(): WindowInfo {
 
 data class WindowInfo(
     val isWideScreen: Boolean
+)
+
+data class Product(
+    val name: String,
+    val cost: String,
+    val description: String
 )
 
 @Preview(showBackground = true)

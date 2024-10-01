@@ -33,9 +33,9 @@ fun SimpleContentPanesApp() {
     val windowInfo = calculateCurrentWindowInfo()
     val items = listOf("Task 1", "Task 2", "Task 3", "Task 4") // sample tasks
     val products = listOf(
-        Product("Product A", "$100", "Product A is the most affordable and breaks easily."),
-        Product("Product B", "$150", "Product B is slightly more expensive but breaks less easily."),
-        Product("Product C", "$10,000", "Premium product C, Stop looking at it you know can't afford it.")
+        Product("Product A", "$100", "Product A is the most affordable, but breaks easily."),
+        Product("Product B", "$150", "Product B is slightly more expensive, but breaks less easily."),
+        Product("Product C", "$10,000", "Premium product C, is invincible. Stop looking at it you know can't afford it.")
     )
 
     var selectedItem by remember { mutableStateOf<String?>(null) }
@@ -96,7 +96,7 @@ fun TaskList(allProds: List<Product>, onItemSelected: (String) -> Unit, modifier
 
 @Composable
 fun TaskDetailPane(prod: String?, modifier: Modifier = Modifier, allProds: List<Product>) {
-    // Task details pane used when the user selects a particular task
+    // Task details pane used when the user selects a particular product
     Column(
         modifier = modifier
             .padding(16.dp)
@@ -104,22 +104,30 @@ fun TaskDetailPane(prod: String?, modifier: Modifier = Modifier, allProds: List<
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // add for loop here
+        // If product name is selected, find it in the list
         if (prod != null) {
-            // Task Detail
-            Text(
-                text = "Details for $prod",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                fontStyle = FontStyle.Italic
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "This is the detailed description of $prod.",
-                fontSize = 16.sp
-            )
+            val selectedProduct = allProds.find { it.name == prod }  // Find the selected product
+
+            if (selectedProduct != null) {
+                // Product details
+                Text(
+                    text = "Details for ${selectedProduct.name}",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = FontStyle.Italic
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = """
+                        Name of product: ${selectedProduct.name}
+                        Product Cost: ${selectedProduct.cost}
+                        Useful Description: ${selectedProduct.description}
+                    """.trimIndent(),
+                    fontSize = 16.sp
+                )
+            }
         } else {
-            // No task selected
+            // No product selected
             Text(
                 text = "Select a product to view details.",
                 fontSize = 20.sp,
@@ -128,6 +136,7 @@ fun TaskDetailPane(prod: String?, modifier: Modifier = Modifier, allProds: List<
         }
     }
 }
+
 
 
 @Composable
